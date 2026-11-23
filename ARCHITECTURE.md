@@ -252,7 +252,8 @@ Reserved for later migrations (designed, not created yet): `agent_sessions`
   (seen on the first real run: 6 GB → 0.2 GB).
 * **iOS lock screen:** a freshly booted iOS 17.5 simulator stayed on the lock
   screen and Maestro's `launchApp` failed with "Unknown error" (the final
-  screenshot shows it). Not yet handled; see ROADMAP.
+  screenshot shows it). Fixed by `pressKey: Home` before `launchApp` in the
+  flow (verified on iOS 17.5 and 26.2).
 * **Android downgrades:** `adb install -r` refuses an APK whose versionCode is
   lower than the installed one, or which is signed with another key. The
   driver reports both with an actionable message. It never uninstalls on its

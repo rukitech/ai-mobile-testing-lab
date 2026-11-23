@@ -103,6 +103,12 @@ npm run lab -- run smoke-launch --devices "iPhone 16e@26.2,iPad (A16)@26.2,Pixel
 npm run lab -- action "Pixel 6" screen-profile tablet-10
 ```
 
+Flows should **wait for and assert** a real element (`extendedWaitUntil` +
+`assertVisible`). A flow that only launches and screenshots "passes" even on a
+blank screen: on the first real run, an app's first launch after install took
+more than 20 s to draw on a busy Android emulator, and the launch-only smoke
+flow still passed.
+
 `name@version` picks a runtime when the same simulator exists on several iOS
 versions. Flows use `appId: ${APP_ID}`; the lab fills it in per platform from
 the build.
@@ -135,9 +141,10 @@ spoofed by another worker, nothing hits disk).
 | Boot iOS simulators (3 in parallel) and an Android emulator (Android 16 / API 36) | ✅ |
 | Build upload with app-id auto-detection (`plutil` / `aapt2`), worker download + sha256 check + unzip | ✅ |
 | iOS install on simulators (iOS 17.5, 26.2) | ✅ |
-| Maestro run per device with `--device`, artifacts (step screenshots, JUnit, log) uploaded and shown per device | ✅ pipeline works. The flow itself failed: the iOS 17.5 simulator sat on the lock screen (see ROADMAP) |
-| Android install | ❌ correctly refused: the APK on disk (versionCode 61) is older than the installed app (64). The error message was improved after this |
-| Several Maestro processes at once on one Mac | ⚠️ not proven: two runs overlapped for only ~4 s before the run was stopped |
+| Maestro run per device with `--device`, artifacts (step screenshots, JUnit, log) uploaded and shown per device | ✅ |
+| **Same flow on 4 devices in parallel** (iPhone SE iOS 17.5, iPhone 16e iOS 26.2, iPad iOS 26.2, Android 16 emulator): fresh install of an iOS Release sim build and an Android release APK, then a login-screen flow with assertions (screen visible, empty-form validation) | ✅ all 4 passed, four Maestro processes at once with no port conflicts |
+| iOS lock screen after boot | ✅ fixed in the flow: `pressKey: Home` before `launchApp` |
+| Android install refusing a downgrade (versionCode 61 over 64) | ✅ clear error message |
 | Live Wall on a running iOS 26.2 simulator: a new frame every 1.5–3 s, ~47 KB JPEG each, no files left behind | ✅ |
 | Screen profiles (`wm size/density`), Windows worker, dashboard device actions against live devices | ⏳ not run yet. The first run was stopped because **disk dropped to ~0.2 GB free** |
 

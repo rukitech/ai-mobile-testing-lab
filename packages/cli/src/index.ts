@@ -8,6 +8,7 @@
  *   npm run lab -- suite add <name> <flow.yaml>
  *   npm run lab -- run <suiteName> --devices "iPhone 16,Pixel 6" [--ios-build id] [--android-build id] [--app-id-ios x] [--app-id-android y]
  *   npm run lab -- watch <runId>
+ *   npm run lab -- artifact <artifactId> [outFile]
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -176,6 +177,16 @@ switch (cmd) {
   case 'watch':
     await watch(rest[0] ?? die('usage: watch <runId>'));
     break;
+  case 'artifact': {
+    const [id, out] = rest;
+    if (!id || !/^[0-9a-f-]{36}$/.test(id)) die('usage: artifact <artifactId> [outFile]');
+    const res = await fetch(`${server}/api/artifacts/${id}`, { headers: { authorization: `Bearer ${token}` } });
+    if (!res.ok) die(`HTTP ${res.status}`);
+    const file = out ?? `${id}.${(res.headers.get('content-type') ?? '').includes('png') ? 'png' : 'txt'}`;
+    fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+    console.log(file);
+    break;
+  }
   default:
     console.log(fs.readFileSync(new URL(import.meta.url), 'utf8').split('*/')[0]);
 }
@@ -183,7 +194,7 @@ switch (cmd) {
 async function watch(runId: string) {
   let last = '';
   for (;;) {
-    const r = await api<{ run: { status: string }; tasks: { device_name: string; os_version: string; status: string; error: string | null; duration_ms: number | null }[]; artifacts: { id: string; task_id: string; kind: string; file_name: string }[] }>('GET', `/api/runs/${runId}`);
+    const r = await api<{ run: { status: string }; tasks: { id: string; device_name: string; os_version: string; status: string; error: string | null; duration_ms: number | null }[]; artifacts: { id: string; task_id: string; kind: string; file_name: string }[] }>('GET', `/api/runs/${runId}`);
     const line = r.tasks.map((t) => `${t.device_name}(${t.os_version}): ${t.status}`).join(' | ');
     if (line !== last) {
       console.log(`[${new Date().toLocaleTimeString()}] ${r.run.status.padEnd(9)} ${line}`);
@@ -192,7 +203,10 @@ async function watch(runId: string) {
     if (['passed', 'failed', 'error', 'cancelled'].includes(r.run.status)) {
       for (const t of r.tasks) if (t.error) console.log(`  ${t.device_name}: ${t.error}`);
       console.log(`screenshots:`);
-      for (const a of r.artifacts.filter((x) => x.kind === 'screenshot')) console.log(`  ${server}/api/artifacts/${a.id}  (${a.file_name})`);
+      for (const a of r.artifacts.filter((x) => x.kind === 'screenshot')) {
+        const t = r.tasks.find((x) => x.id === a.task_id);
+        console.log(`  ${a.id}  ${t ? t.device_name : ''}  ${a.file_name}`);
+      }
       return;
     }
     await new Promise((res) => setTimeout(res, 2000));

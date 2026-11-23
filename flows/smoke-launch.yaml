@@ -2,6 +2,10 @@
 # the lab passes APP_ID per platform (iOS bundle id / Android package).
 appId: ${APP_ID}
 ---
+# A freshly booted iOS simulator can sit on the lock screen ("Press home to
+# open"), which makes launchApp fail. Pressing Home first is harmless when the
+# device is already unlocked.
+- pressKey: Home
 - launchApp:
     clearState: true
 - waitForAnimationToEnd:

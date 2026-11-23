@@ -18,8 +18,8 @@ status/duration/error, step and final screenshots, JUnit + Maestro logs,
 side-by-side run view.
 
 Next, from what the first real run showed:
-1. **iOS lock screen after boot.** Unlock or launch before Maestro (try
-   `simctl launch` first, then `pressKey: Home` in a prelude flow), and verify on 17.5 and 26.x.
+1. ~~iOS lock screen after boot~~: fixed with `pressKey: Home` at the start
+   of the flow (verified on iOS 17.5 and 26.2). Next: inject it automatically.
 2. **Cancel in-flight Maestro.** Cancelling stops between steps today; add a
    `command.cancel` frame that kills the worker's child process.
 3. **Retry policy.** `attempt` exists on `test_tasks`; retry infra errors
