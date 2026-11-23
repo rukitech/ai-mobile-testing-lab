@@ -1,0 +1,9 @@
+# Launches the app fresh and captures the first screen. Works on any app:
+# the lab passes APP_ID per platform (iOS bundle id / Android package).
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: launch

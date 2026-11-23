@@ -1,0 +1,37 @@
+{
+  "name": "ai-mobile-testing-lab",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Drive many iOS simulators and Android emulators from one place: discover, boot, install, run the same Maestro flow in parallel, compare screenshots.",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/worker",
+    "packages/cli",
+    "packages/dashboard"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "server": "npm run start -w @lab/server",
+    "worker": "npm run start -w @lab/worker",
+    "dashboard": "npm run dev -w @lab/dashboard",
+    "lab": "tsx --env-file-if-exists=.env packages/cli/src/index.ts",
+    "build:dashboard": "npm run build -w @lab/dashboard",
+    "typecheck": "tsc -p tsconfig.json --noEmit && npm run typecheck -w @lab/dashboard",
+    "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"packages/*/src/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rukitech/ai-mobile-testing-lab.git"
+  }
+}
